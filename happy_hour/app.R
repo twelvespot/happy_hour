@@ -9,6 +9,8 @@
 
 library(shiny)
 library(tidyverse)
+library(leaflet)
+library(tidygeocoder)
 team_data <- tibble(
     name = c("Jarad", 
              "Prakesha", 
@@ -20,13 +22,25 @@ team_data <- tibble(
 
 ui <- fluidPage(
     checkboxGroupInput(inputId = "members", "Who's Coming to Happy Hour", choices = team_data$name),
-    tableOutput(outputId = "team_table")
+    tableOutput(outputId = "team_table"),
+    leafletOutput("happy_map"),
+    p()
 )
 
 
 server <- function(input, output) {
+    geo_table <- reactive(team_data %>% 
+        filter(name %in% input$members) %>% 
+        geocode(address = address))
     output$team_table <- renderTable({
-        team_data %>% filter(name %in% input$members)})
+        geo_table()})
+    
+    output$happy_map <- renderLeaflet({
+        leaflet() %>% 
+            addTiles() %>% 
+            addMarkers(data = geo_table())
+    })
+    
 }
 
 
