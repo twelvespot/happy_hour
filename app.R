@@ -12,41 +12,55 @@ library(tidyverse)
 library(leaflet)
 library(tidygeocoder)
 library(geosphere)
-team_data <- tibble(
-    name = c("Jarad", 
-             "Prakesha", 
-             "Utti"),
-    address = c("2927 Sycamore St, Alexandria, VA 22305", 
-                "5812 Lone Oak Dr, Bethesda, MD 20814",
-                "1901 Altamount Ave, District Heights, MD 20747")
-)
 
 ui <- fluidPage(
-    checkboxGroupInput(inputId = "members", "Who's Coming to Happy Hour", 
-                       choices = team_data$name,
-                       selected = "Jarad"),
+    textInput("name", "Name"),
+    textInput("street", "Street Address"),
+    textInput("city", "City"),
+    textInput("state", "State"),          
+    textInput("zip", "Zipcode"),
+    actionButton(inputId = "add", label = "Add Person"),
     tableOutput(outputId = "team_table"),
+    actionButton("geocode", label = "Find Happy Hour"),
     leafletOutput("happy_map")
 )
 
-
-server <- function(input, output) {
-    geo_table <- reactive(team_data %>% 
-        filter(name %in% input$members) %>% 
-        geocode(address = address))
-    centroid_matrix <- reactive(as.matrix(geo_table()[c("long", "lat")]))
-    centroid_point <- reactive(centroid(centroid_matrix()))
-    output$team_table <- renderTable({
-        geo_table()})
-    
-    output$happy_map <- renderLeaflet({
-        leaflet() %>% 
-            addTiles() %>% 
-            addMarkers(data = geo_table()) %>% 
-            addMarkers(data = centroid_point())
+server <- function(input, output, session) {
+    team_data_react <- reactiveValues(loc_table = tibble(Name = NA,
+                                              Street_Address = NA,
+                                              City = NA,
+                                              State = NA,
+                                              Zipcode = NA))
+    observeEvent(input$add, {
+        team_data_react$loc_table <- tibble(Name = input$name,
+                                            Street_Address = input$street,
+                                            City = input$city,
+                                            State = input$state,
+                                            Zipcode = input$zip) %>% 
+                                     bind_rows(team_data_react$loc_table) %>% 
+                                     filter(!is.na(Zipcode))
+        updateTextInput(session, "name", value = "")
+        updateTextInput(session, "street", value = "")
+        updateTextInput(session, "city", value = "")
+        updateTextInput(session, "state", value = "")
+        updateTextInput(session, "zip", value = "")
     })
+    output$team_table <- renderTable(team_data_react$loc_table)
     
-}
+    observeEvent(input$geocode, {
+        team_data_react$geo_table <- team_data_react$loc_table %>% 
+            geocode(street = Street_Address, city = City, state = State,
+                    postalcode = Zipcode)
+        team_data_react$centroid_matrix <- team_data_react$geo_table[c("long", "lat")]
+        team_data_react$centroid_point <- centroid(team_data_react$centroid_matrix)
+    })
+    output$happy_map <- renderLeaflet({
+        leaflet() %>%
+            addTiles() %>%
+            addMarkers(data = team_data_react$geo_table) %>%
+            addMarkers(data = team_data_react$centroid_point, label = "Middle Ground!!")
+    })
 
+}
 
 shinyApp(ui = ui, server = server)
