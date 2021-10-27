@@ -50,9 +50,14 @@ server <- function(input, output, session) {
     observeEvent(input$geocode, {
         team_data_react$geo_table <- team_data_react$loc_table %>% 
             geocode(street = Street_Address, city = City, state = State,
-                    postalcode = Zipcode)
-        team_data_react$centroid_matrix <- team_data_react$geo_table[c("long", "lat")]
-        team_data_react$centroid_point <- centroid(team_data_react$centroid_matrix)
+                    postalcode = Zipcode) %>% 
+            filter(!is.na(long))
+        team_data_react$centroid_matrix <- cbind(team_data_react$geo_table$long, team_data_react$geo_table$lat)
+        team_data_react$centroid_point <- if (nrow(team_data_react$centroid_matrix) > 2) {
+            centroid(team_data_react$centroid_matrix)
+        } else {
+            midPoint(team_data_react$centroid_matrix[1,], team_data_react$centroid_matrix[2,])
+        }
     })
     output$happy_map <- renderLeaflet({
         leaflet() %>%
