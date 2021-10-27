@@ -45,12 +45,12 @@ server <- function(input, output, session) {
         updateTextInput(session, "state", value = "")
         updateTextInput(session, "zip", value = "")
     })
-    output$team_table <- renderTable(team_data_react$loc_table)
+    output$team_table <- renderTable({team_data_react$loc_table})
     
     observeEvent(input$geocode, {
         team_data_react$geo_table <- team_data_react$loc_table %>% 
             geocode(street = Street_Address, city = City, state = State,
-                    postalcode = Zipcode) %>% 
+                    postalcode = Zipcode, method = "census") %>% 
             filter(!is.na(long))
         team_data_react$centroid_matrix <- cbind(team_data_react$geo_table$long, team_data_react$geo_table$lat)
         team_data_react$centroid_point <- 
