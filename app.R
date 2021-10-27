@@ -53,10 +53,13 @@ server <- function(input, output, session) {
                     postalcode = Zipcode) %>% 
             filter(!is.na(long))
         team_data_react$centroid_matrix <- cbind(team_data_react$geo_table$long, team_data_react$geo_table$lat)
-        team_data_react$centroid_point <- if (nrow(team_data_react$centroid_matrix) > 2) {
+        team_data_react$centroid_point <- 
+            if (nrow(team_data_react$centroid_matrix) > 2) {
             centroid(team_data_react$centroid_matrix)
-        } else {
+        } else if (nrow(team_data_react$centroid_matrix) == 2) {
             midPoint(team_data_react$centroid_matrix[1,], team_data_react$centroid_matrix[2,])
+        } else {
+            team_data_react$centroid_matrix
         }
     })
     output$happy_map <- renderLeaflet({
