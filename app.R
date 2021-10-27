@@ -61,14 +61,13 @@ server <- function(input, output, session) {
         } else {
             team_data_react$centroid_matrix
         }
-    })
-    output$happy_map <- renderLeaflet({
-        leaflet() %>%
-            addTiles() %>%
+        team_data_react$team_map <- leaflet() %>% 
+            addTiles() %>% 
             addMarkers(data = team_data_react$geo_table) %>%
             addMarkers(data = team_data_react$centroid_point, label = "Middle Ground!!")
     })
-
+    
+    output$happy_map <- renderLeaflet({team_data_react$team_map})
 }
 
 shinyApp(ui = ui, server = server)
