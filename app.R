@@ -22,18 +22,19 @@ ui <- fluidPage(
     actionButton(inputId = "add", label = "Add Person"),
     tableOutput(outputId = "team_table"),
     actionButton("geocode", label = "Find Happy Hour"),
+    actionButton("clear", label = "Start Over"),
     leafletOutput("happy_map")
 )
 
 server <- function(input, output, session) {
     team_data_react <- reactiveValues(loc_table = tibble(Name = NA,
-                                              Street_Address = NA,
+                                              `Street Address` = NA,
                                               City = NA,
                                               State = NA,
                                               Zipcode = NA))
     observeEvent(input$add, {
         team_data_react$loc_table <- tibble(Name = input$name,
-                                            Street_Address = input$street,
+                                            `Street Address` = input$street,
                                             City = input$city,
                                             State = input$state,
                                             Zipcode = input$zip) %>% 
@@ -49,7 +50,7 @@ server <- function(input, output, session) {
     
     observeEvent(input$geocode, {
         team_data_react$geo_table <- team_data_react$loc_table %>% 
-            geocode(street = Street_Address, city = City, state = State,
+            geocode(street = `Street Address`, city = City, state = State,
                     postalcode = Zipcode, method = "census") %>% 
             filter(!is.na(long))
         team_data_react$centroid_matrix <- cbind(team_data_react$geo_table$long, team_data_react$geo_table$lat)
@@ -68,6 +69,13 @@ server <- function(input, output, session) {
     })
     
     output$happy_map <- renderLeaflet({team_data_react$team_map})
+    observeEvent(input$clear, {
+        team_data_react$loc_table <- tibble(Name = NA,
+                                            `Street Address` = NA,
+                                            City = NA,
+                                            State = NA,
+                                            Zipcode = NA)
+    })
 }
 
 shinyApp(ui = ui, server = server)
