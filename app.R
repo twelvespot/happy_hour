@@ -31,15 +31,18 @@ server <- function(input, output, session) {
                                               `Street Address` = NA,
                                               City = NA,
                                               State = NA,
-                                              Zipcode = NA))
+                                              Zipcode = NA,
+                                              Country = "USA"))
     observeEvent(input$add, {
         team_data_react$loc_table <- tibble(Name = input$name,
                                             `Street Address` = input$street,
                                             City = input$city,
                                             State = input$state,
-                                            Zipcode = input$zip) %>% 
+                                            Zipcode = input$zip,
+                                            Country = "USA") %>% 
                                      bind_rows(team_data_react$loc_table) %>% 
-                                     filter(!is.na(Zipcode))
+                                     filter(!is.na(Zipcode)) %>% 
+            mutate(across(everything(), ~ na_if(.x, "")))
         updateTextInput(session, "name", value = "")
         updateTextInput(session, "street", value = "")
         updateTextInput(session, "city", value = "")
@@ -49,10 +52,19 @@ server <- function(input, output, session) {
     output$team_table <- renderTable({team_data_react$loc_table})
     
     observeEvent(input$geocode, {
-        team_data_react$geo_table <- team_data_react$loc_table %>% 
-            geocode(street = `Street Address`, city = City, state = State,
-                    postalcode = Zipcode, method = "census") %>% 
-            filter(!is.na(long))
+        team_data_react$geo_table <- 
+            if (all(!is.na(team_data_react$loc_table))) {
+                team_data_react$loc_table %>% 
+                geocode(street = `Street Address`, city  = City,
+                        state = State, postalcode = Zipcode,
+                        method = "census") %>% 
+                    filter(!is.na(long))
+            } else {
+                team_data_react$loc_table %>% 
+                geocode(postalcode = Zipcode, country = Country, 
+                        method = "osm") %>% 
+                    filter(!is.na(long))
+            }
         team_data_react$centroid_matrix <- cbind(team_data_react$geo_table$long, team_data_react$geo_table$lat)
         team_data_react$centroid_point <- 
             if (nrow(team_data_react$centroid_matrix) > 2) {
@@ -75,6 +87,14 @@ server <- function(input, output, session) {
                                             City = NA,
                                             State = NA,
                                             Zipcode = NA)
+        team_data_react$geo_table <- tibble(Name = NA,
+                                            `Street Address` = NA,
+                                            City = NA,
+                                            State = NA,
+                                            Zipcode = NA,
+                                            lat = NA,
+                                            long = NA)
+
     })
 }
 

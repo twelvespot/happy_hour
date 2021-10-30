@@ -5,9 +5,9 @@ account: jrad
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 4936012
-bundleId: 5183125
+bundleId: 5184998
 url: https://jrad.shinyapps.io/happy_hour/
-when: 1635347554.48025
-lastSyncTime: 1635347554.48026
+when: 1635391141.97272
+lastSyncTime: 1635391141.97273
 asMultiple: FALSE
 asStatic: FALSE
