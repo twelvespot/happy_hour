@@ -81,7 +81,7 @@ server <- function(input, output, session) {
             addMarkers(data = team_data_react$centroid_point, label = "Middle Ground!!")
         team_data_react$happy_address <- team_data_react$centroid_point %>% 
             as_tibble() %>% 
-            rename(lat = 1, long = 2) %>% 
+            rename(lat = 2, long = 1) %>% 
             reverse_geocode(lat = lat, long = long) %>% 
             pull(address)
     })
