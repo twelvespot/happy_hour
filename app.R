@@ -23,7 +23,8 @@ ui <- fluidPage(
     tableOutput(outputId = "team_table"),
     actionButton("geocode", label = "Find Happy Hour"),
     actionButton("clear", label = "Start Over"),
-    leafletOutput("happy_map")
+    leafletOutput("happy_map"),
+    textOutput(outputId = "happy_address")
 )
 
 server <- function(input, output, session) {
@@ -78,6 +79,10 @@ server <- function(input, output, session) {
             addTiles() %>% 
             addMarkers(data = team_data_react$geo_table) %>%
             addMarkers(data = team_data_react$centroid_point, label = "Middle Ground!!")
+        team_data_react$happy_address <- team_data_react$centroid_point %>% 
+            as_tibble() %>% 
+            reverse_geocode(lat = lat, long = lon) %>% 
+            pull(address)
     })
     
     output$happy_map <- renderLeaflet({team_data_react$team_map})
@@ -96,6 +101,8 @@ server <- function(input, output, session) {
                                             long = NA)
 
     })
+    output$happy_address <- renderText(team_data_react$happy_address)
+    
 }
 
 shinyApp(ui = ui, server = server)
