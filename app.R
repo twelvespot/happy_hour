@@ -12,19 +12,30 @@ library(tidyverse)
 library(leaflet)
 library(tidygeocoder)
 library(geosphere)
+library(bslib)
 
 ui <- fluidPage(
-    textInput("name", "Name"),
-    textInput("street", "Street Address"),
-    textInput("city", "City"),
-    textInput("state", "State"),          
-    textInput("zip", "Zipcode"),
-    actionButton(inputId = "add", label = "Add Person"),
-    tableOutput(outputId = "team_table"),
-    actionButton("geocode", label = "Find Happy Hour"),
-    actionButton("clear", label = "Start Over"),
-    leafletOutput("happy_map"),
-    textOutput(outputId = "happy_address")
+    theme = bs_theme(bootswatch = "minty"),
+    titlePanel(
+        "Let's Find a Place We Can All Meet"
+    ),
+    sidebarLayout(
+        sidebarPanel(
+            textInput("name", "Name"),
+            textInput("street", "Street Address"),
+            textInput("city", "City"),
+            textInput("state", "State"),          
+            textInput("zip", "Zipcode"),
+            actionButton(inputId = "add", label = "Add Person"),
+            actionButton("clear", label = "Start Over"),
+            actionButton("geocode", label = "Find Happy Hour")
+        ),
+        mainPanel(
+            leafletOutput("happy_map"),
+            textOutput(outputId = "happy_address")
+        )
+    ),
+    tableOutput(outputId = "team_table")
 )
 
 server <- function(input, output, session) {
