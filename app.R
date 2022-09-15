@@ -1,11 +1,3 @@
-#
-# This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
 
 library(shiny)
 library(tidyverse)
@@ -86,10 +78,22 @@ server <- function(input, output, session) {
         } else {
             team_data_react$centroid_matrix
         }
+        icon_blue <- awesomeIcons(
+            icon = 'ios-close',
+            iconColor = 'black',
+            library = 'ion',
+            markerColor = "blue"
+        )
+        icon_orange <- awesomeIcons(
+            icon = 'ios-close',
+            iconColor = 'black',
+            library = 'ion',
+            markerColor = "orange"
+        )
         team_data_react$team_map <- leaflet() %>% 
             addTiles() %>% 
-            addMarkers(data = team_data_react$geo_table) %>%
-            addMarkers(data = team_data_react$centroid_point, label = "Middle Ground!!")
+            addAwesomeMarkers(data = team_data_react$geo_table, icon = icon_blue) %>%
+            addAwesomeMarkers(data = team_data_react$centroid_point, label = "Middle Ground!!", icon = icon_orange)
         team_data_react$happy_address <- team_data_react$centroid_point %>% 
             as_tibble() %>% 
             rename(lat = 2, long = 1) %>% 
